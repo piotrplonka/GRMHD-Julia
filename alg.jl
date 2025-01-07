@@ -15,15 +15,16 @@ x = [0.7, 0.2, 0.3, 0.4, 0.5, 2.0, 3.0, 4.0]
 x_guess = [0.7, 0.2, 0.3, 0.4, 0.5, 2.0, 3.0, 4.0] * 0.865
 
 local_buffer = zeros(8)
+
 @time @threads for i in r
     for j in theta
         for k in phi
             metric = Kerr_Schild_metric_cov(i, j, k, 0.95)
-            PtoFx(x, local_buffer, metric)
-            PtoFy(x, local_buffer, metric)
-            PtoFz(x, local_buffer, metric)
-            PtoU(x, local_buffer, metric)
-            UtoP(local_buffer, x_guess, metric)
+            PtoFx(x, local_buffer, metric,eos::Polytrope)
+            PtoFy(x, local_buffer, metric,eos::Polytrope)
+            PtoFz(x, local_buffer, metric,eos::Polytrope)
+            PtoU(x, local_buffer, metric,eos::Polytrope)
+            UtoP(local_buffer, x_guess, metric,eos::Polytrope)
             for z1 in 1:4
                 for z2 in 1:4
                     for z3 in 1:4
