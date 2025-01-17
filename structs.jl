@@ -453,11 +453,11 @@ end
 function UtoP(U::AbstractVector, initial_guess::AbstractVector, gcov::Matrix{Float64}, eos::Polytrope)
     
     #Some values
-    max_iter::Int64=100 #Maximum amount of interations
+    max_iter::Int64 = 100 #Maximum amount of interations
     buff_jac = MVector{25, Float64}(zeros(25))
     buff_fun = MVector{8, Float64}(zeros(8))
-    buff_jac_inv::Matrix{Float64}=zeros(5,5)
-    buff_jac_reshape::Matrix{Float64}=zeros(5,5)
+    buff_jac_inv::Matrix{Float64} = zeros(5,5)
+    buff_jac_reshape::Matrix{Float64} = zeros(5,5)
     
     sq_g::Float64 = sqrt_g(gcov) #square root of the determinant of the metric
     x = initial_guess #rename of x-vector
