@@ -3,9 +3,9 @@ using Base.Threads
 using StaticArrays
 
 #Size of grid
-N1 = 256
-N2 = 128
-N3 = 64
+N1 = 256*2
+N2 = 128*2
+N3 = 64*2
 
 #Grid Limits (in gravitational Radius)
 N1_min = 10

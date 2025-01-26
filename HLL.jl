@@ -7,15 +7,17 @@ include("Christoffel_Symbols.jl")
 include("structs.jl")
 include("Initial_Conditions.jl")
 include("fluxlimiter.jl")
+include("eos.jl")
 
 function HLL()
 a = 0.8
 buffer_U = zeros(NP)
-buffer_U_true =zeros(N1,N2,N3,NP)
+buffer_U_true = zeros(N1,N2,N3,NP)
 
 @views @threads for i in 3:(N1-2)
    for j in 3:(N2-2)
           for k in 3:(N3-2)
+          
                 # Call PtoU with the grid values and store the results directly in buffer_U
                 PtoU(grid[i, j, k, :], buffer_U, Kerr_Schild_metric_cov(N1_grid[i], N2_grid[j], N3_grid[k], a), eos)       
                 buffer_U_true[i, j, k, :] = buffer_U
@@ -72,7 +74,31 @@ buffer_U_true =zeros(N1,N2,N3,NP)
                 u_i_plus_1_2_L_N3 = grid[i, j, k,  :] .+ minmod(r_i_N3       )/4 .* ((1-κ)* δu_i_sub_1_2_N3  .+ (1+κ) * δu_i_plus_1_2_N3)
                 u_i_plus_1_2_R_N3 = grid[i, j, k+1,:] .- minmod(r_i_plus_1_N3)/4 .* ((1-κ)* δu_i_plus_3_2_N3 .+ (1+κ) * δu_i_plus_1_2_N3)                
                 u_i_sub_1_2_L_N3  = grid[i, j, k-1,:] .+ minmod(r_i_sub_1_N3 )/4 .* ((1-κ)* δu_i_sub_3_2_N3  .+ (1+κ) * δu_i_sub_1_2_N3 )
-                u_i_sub_1_2_R_N3  = grid[i, j, k,  :] .- minmod(r_i_N3       )/4 .* ((1-κ)* δu_i_plus_1_2_N3 .+ (1+κ) * δu_i_sub_1_2_N3 )    
+                u_i_sub_1_2_R_N3  = grid[i, j, k,  :] .- minmod(r_i_N3       )/4 .* ((1-κ)* δu_i_plus_1_2_N3 .+ (1+κ) * δu_i_sub_1_2_N3 )
+                
+                
+                                u_i_plus_1_2_L_N1 = grid[i, j, k,  :] .+ minmod(r_i_N1       )/4 .* ((1-κ)* δu_i_sub_1_2_N1  .+ (1+κ) * δu_i_plus_1_2_N1)
+                u_i_plus_1_2_R_N1 = grid[i+1, j, k,:] .- minmod(r_i_plus_1_N1)/4 .* ((1-κ)* δu_i_plus_3_2_N1 .+ (1+κ) * δu_i_plus_1_2_N1)                
+                u_i_sub_1_2_L_N1  = grid[i-1, j, k,:] .+ minmod(r_i_sub_1_N1 )/4 .* ((1-κ)* δu_i_sub_3_2_N1  .+ (1+κ) * δu_i_sub_1_2_N1 )
+                u_i_sub_1_2_R_N1  = grid[i, j, k,  :] .- minmod(r_i_N1       )/4 .* ((1-κ)* δu_i_plus_1_2_N1 .+ (1+κ) * δu_i_sub_1_2_N1 )    
+                
+                
+                
+                #Velocities of the Magnetosonic Waves
+                V_left_left_N1   = MagnetosonicSpeed(u_i_sub_1_2_L_N1,  Kerr_Schild_metric_cov(N1_grid[i], N2_grid[j], N3_grid[k], a), eos::Polytrope)
+                V_left_right_N1  = MagnetosonicSpeed(u_i_sub_1_2_R_N1,  Kerr_Schild_metric_cov(N1_grid[i], N2_grid[j], N3_grid[k], a), eos::Polytrope)
+                V_right_left_N1  = MagnetosonicSpeed(u_i_plus_1_2_L_N1, Kerr_Schild_metric_cov(N1_grid[i], N2_grid[j], N3_grid[k], a), eos::Polytrope)
+                V_right_right_N1 = MagnetosonicSpeed(u_i_plus_1_2_R_N1, Kerr_Schild_metric_cov(N1_grid[i], N2_grid[j], N3_grid[k], a), eos::Polytrope)
+
+                V_left_left_N2   = MagnetosonicSpeed(u_i_sub_1_2_L_N2,  Kerr_Schild_metric_cov(N1_grid[i], N2_grid[j], N3_grid[k], a), eos::Polytrope)
+                V_left_right_N2  = MagnetosonicSpeed(u_i_sub_1_2_R_N2,  Kerr_Schild_metric_cov(N1_grid[i], N2_grid[j], N3_grid[k], a), eos::Polytrope)
+                V_right_left_N2  = MagnetosonicSpeed(u_i_plus_1_2_L_N2, Kerr_Schild_metric_cov(N1_grid[i], N2_grid[j], N3_grid[k], a), eos::Polytrope)
+                V_right_right_N2 = MagnetosonicSpeed(u_i_plus_1_2_R_N2, Kerr_Schild_metric_cov(N1_grid[i], N2_grid[j], N3_grid[k], a), eos::Polytrope)
+
+                V_left_left_N3   = MagnetosonicSpeed(u_i_sub_1_2_L_N3,  Kerr_Schild_metric_cov(N1_grid[i], N2_grid[j], N3_grid[k], a), eos::Polytrope)
+                V_left_right_N3  = MagnetosonicSpeed(u_i_sub_1_2_R_N3,  Kerr_Schild_metric_cov(N1_grid[i], N2_grid[j], N3_grid[k], a), eos::Polytrope)
+                V_right_left_N3  = MagnetosonicSpeed(u_i_plus_1_2_L_N3, Kerr_Schild_metric_cov(N1_grid[i], N2_grid[j], N3_grid[k], a), eos::Polytrope)
+                V_right_right_N3 = MagnetosonicSpeed(u_i_plus_1_2_R_N3, Kerr_Schild_metric_cov(N1_grid[i], N2_grid[j], N3_grid[k], a), eos::Polytrope)
                 
             end
         end

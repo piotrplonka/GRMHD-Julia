@@ -279,6 +279,7 @@ end
 
 function Jacobian(x::AbstractVector, buffer::AbstractVector, gcov::Matrix{Float64}, eos::Polytrope)
 	
+	
 	#Parameters
 	ρ::Float64  = x[1] #Density
 	u::Float64  = x[2] #Internal Energy 
@@ -524,8 +525,3 @@ function UtoP(U::AbstractVector, initial_guess::AbstractVector, gcov::Matrix{Flo
     end
     return x
 end
-
-
-
-
-
