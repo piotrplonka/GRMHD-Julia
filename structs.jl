@@ -233,6 +233,49 @@ function PtoFz(x::AbstractVector, buffer::AbstractVector, gcov::Matrix{Float64},
 
 end
 
+function PtoF_Bx_By_Bz(x::AbstractVector, buffer::AbstractVector, gcov::Matrix{Float64}, eos::Polytrope)
+	
+	#Parameters
+	ρ::Float64  = x[1] #Density
+	u::Float64  = x[2] #Internal Energy 
+	u1::Float64 = x[3] #Contravariant Four-velocity in 1-direction
+	u2::Float64 = x[4] #Contravariant Four-velocity in 2-direction
+	u3::Float64 = x[5] #Contravariant Four-velocity in 3-direction   
+	B1::Float64 = x[6] #Magnetic field in 1-direction
+	B2::Float64 = x[7] #Magnetic field in 2-direction
+	B3::Float64 = x[8] #Magnetic field in 3-direction
+
+	#To find u0, we need to solve the quadratic equation g_ij*ui*uj = −1    
+	a::Float64 = gcov[1,1]   
+	b::Float64 = 2*gcov[1,2]*u1 + 2*gcov[1,3]*u2 + 2*gcov[1,4]*u3
+	c::Float64 = gcov[2,2]*u1*u1 + 2*gcov[2,3]*u1*u2 + 2*gcov[2,4]*u1*u3 + gcov[3,3]*u2*u2 + gcov[4,4]*u3*u3 + 2*gcov[3,4]*u2*u3 + 1
+
+	#Contravariant Four-velocity
+	u0::Float64 = (-b - sqrt(b^2 - 4*a*c))/(2*a)
+       #u1::Float64 = x[3]
+       #u2::Float64 = x[4]
+       #u3::Float64 = x[5]
+
+	#Covariant Four-velocity
+	u_0::Float64 = u0*gcov[1,1] + u1*gcov[2,1] + u2*gcov[3,1] + u3*gcov[4,1]
+	u_1::Float64 = u0*gcov[1,2] + u1*gcov[2,2] + u2*gcov[3,2] + u3*gcov[4,2]
+	u_2::Float64 = u0*gcov[1,3] + u1*gcov[2,3] + u2*gcov[3,3] + u3*gcov[4,3]
+	u_3::Float64 = u0*gcov[1,4] + u1*gcov[2,4] + u2*gcov[3,4] + u3*gcov[4,4]
+
+	#Contravariant Four-magnetic field
+	b0::Float64 = B1*u_1 + B2*u_2 + B3*u_3
+	b1::Float64 = (B1 + b0*u1)/u0
+	b2::Float64 = (B2 + b0*u2)/u0
+	b3::Float64 = (B3 + b0*u3)/u0
+	
+	#Useful Values        
+	sq_g::Float64 = sqrt_g(gcov) #square root of the determinant of the metric
+	
+	#Buffers
+	buffer[1] = sq_g*(b0*u1-b1*u0 + b2*u1-b1*u2 + b3*u1-b1*u3)
+	buffer[2] = sq_g*(b0*u2-b2*u0 + b1*u2-b2*u1 + b3*u2-b2*u3)
+	buffer[3] = sq_g*(b0*u3-b3*u0 + b1*u3-b3*u1 + b2*u3-b3*u2)
+end
 
 function Jacobian(x::AbstractVector, buffer::AbstractVector, gcov::Matrix{Float64}, eos::Polytrope)
 	
