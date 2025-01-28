@@ -9,6 +9,7 @@ include("structs.jl")
 include("Initial_Conditions.jl")
 include("fluxlimiter.jl")
 include("eos.jl")
+include("PPM.jl")
 
 function HLL()
 a = 0.8
@@ -31,110 +32,95 @@ buffer_Fz_RL=zeros(NP)
 buffer_Fz_RR=zeros(NP)
 
 
+
+ULL_N1 = zeros(8)
+ULR_N1 = zeros(8)
+URL_N1 = zeros(8)
+URR_N1 = zeros(8)
+
+ULL_N2 = zeros(8)
+ULR_N2 = zeros(8)
+URL_N2 = zeros(8)
+URR_N2 = zeros(8)               
+
+ULL_N3 = zeros(8)
+ULR_N3 = zeros(8)
+URL_N3 = zeros(8)
+URR_N3 = zeros(8)    
+
+
+#Call PtoU with the grid values and store the results directly in buffer_U
+#PtoU(grid[i, j, k, :], buffer_U, Kerr_Schild_metric_cov(N1_grid[i], N2_grid[j], N3_grid[k], a), eos)       
+#buffer_U_true[i, j, k, :] = buffer_U
+#if norm(UtoP(buffer_U, grid[i, j, k, :] .*(1.1), Kerr_Schild_metric_cov(N1_grid[i], N2_grid[j], N3_grid[k], a), eos) .-grid[i, j, k, :]) >1
+#println("Źle zbiega!")
+#end
+
+
 @views  for i in 3:(N1-2)
-   for j in 3:(N2-2)
-          @threads for k in 3:(N3-2)
-          
-                # Call PtoU with the grid values and store the results directly in buffer_U
-                PtoU(grid[i, j, k, :], buffer_U, Kerr_Schild_metric_cov(N1_grid[i], N2_grid[j], N3_grid[k], a), eos)       
-                buffer_U_true[i, j, k, :] = buffer_U
-                if norm(UtoP(buffer_U, grid[i, j, k, :] .*(1.1), Kerr_Schild_metric_cov(N1_grid[i], N2_grid[j], N3_grid[k], a), eos) .-grid[i, j, k, :]) >1
-                	println("Źle zbiega!")
-                end
-                
-                #PPM METHOD
-                κ = 1/3
-                
-                #δu calculations in N1 - direction
-                δu_i_plus_1_2_N1 = grid[i+1, j, k,:] .- grid[i, j, k,  :]
-                δu_i_sub_1_2_N1  = grid[i, j, k,  :] .- grid[i-1, j, k,:]
-                δu_i_plus_3_2_N1 = grid[i+2, j, k,:] .- grid[i+1, j, k,:]
-                δu_i_sub_3_2_N1  = grid[i-1, j, k,:] .- grid[i-2, j, k,:]                
-                
-                #r calculations in N1 - direction
-		r_i_N1        = (grid[i, j, k,  :] .- grid[i-1, j, k,:]) ./ (grid[i+1, j, k,:] .- grid[i, j, k,  :])
-                r_i_plus_1_N1 = (grid[i+1, j, k,:] .- grid[i, j, k,  :]) ./ (grid[i+2, j, k,:] .- grid[i+1, j, k,:])
-                r_i_sub_1_N1  = (grid[i-1, j, k,:] .- grid[i-2, j, k,:]) ./ (grid[i, j, k,  :] .- grid[i-1, j, k,:])
-                
-                #Final N1 interpolation
-                u_i_plus_1_2_L_N1 = grid[i, j, k,  :] .+ minmod(r_i_N1       )/4 .* ((1-κ)* δu_i_sub_1_2_N1  .+ (1+κ) * δu_i_plus_1_2_N1)
-                u_i_plus_1_2_R_N1 = grid[i+1, j, k,:] .- minmod(r_i_plus_1_N1)/4 .* ((1-κ)* δu_i_plus_3_2_N1 .+ (1+κ) * δu_i_plus_1_2_N1)                
-                u_i_sub_1_2_L_N1  = grid[i-1, j, k,:] .+ minmod(r_i_sub_1_N1 )/4 .* ((1-κ)* δu_i_sub_3_2_N1  .+ (1+κ) * δu_i_sub_1_2_N1 )
-                u_i_sub_1_2_R_N1  = grid[i, j, k,  :] .- minmod(r_i_N1       )/4 .* ((1-κ)* δu_i_plus_1_2_N1 .+ (1+κ) * δu_i_sub_1_2_N1 )                   
+        	for j in 3:(N2-2)
+       @threads 	for k in 3:(N3-2)
+                             
+                #N1 interpolation
+                u_i_plus_1_2_L_N1, u_i_plus_1_2_R_N1, u_i_sub_1_2_L_N1, u_i_sub_1_2_R_N1 = PPM_N1(grid, i, j, k)
 
-                #δu calculations in N2 - direction
-                δu_i_plus_1_2_N2 = grid[i, j+1, k,:] .- grid[i, j, k,  :]
-                δu_i_sub_1_2_N2  = grid[i, j, k,  :] .- grid[i, j-1, k,:]
-                δu_i_plus_3_2_N2 = grid[i, j+2, k,:] .- grid[i, j+1, k,:]
-                δu_i_sub_3_2_N2  = grid[i, j-1, k,:] .- grid[i, j-2, k,:]                
-                
-                #r calculations in N2 - direction
-		r_i_N2        = (grid[i, j, k,  :] .- grid[i, j-1, k,:]) ./ (grid[i, j+1, k,:] .- grid[i, j, k,  :])
-                r_i_plus_1_N2 = (grid[i, j+1, k,:] .- grid[i, j, k,  :]) ./ (grid[i, j+2, k,:] .- grid[i, j+1, k,:])
-                r_i_sub_1_N2  = (grid[i, j-1, k,:] .- grid[i, j-2, k,:]) ./ (grid[i, j, k,  :] .- grid[i, j-1, k,:])
-                
-                #Final N2 interpolation
-                u_i_plus_1_2_L_N2 = grid[i, j, k,  :] .+ minmod(r_i_N2       )/4 .* ((1-κ)* δu_i_sub_1_2_N2  .+ (1+κ) * δu_i_plus_1_2_N2)
-                u_i_plus_1_2_R_N2 = grid[i, j+1, k,:] .- minmod(r_i_plus_1_N2)/4 .* ((1-κ)* δu_i_plus_3_2_N2 .+ (1+κ) * δu_i_plus_1_2_N2)                
-                u_i_sub_1_2_L_N2  = grid[i, j-1, k,:] .+ minmod(r_i_sub_1_N2 )/4 .* ((1-κ)* δu_i_sub_3_2_N2  .+ (1+κ) * δu_i_sub_1_2_N2 )
-                u_i_sub_1_2_R_N2  = grid[i, j, k,  :] .- minmod(r_i_N2       )/4 .* ((1-κ)* δu_i_plus_1_2_N2 .+ (1+κ) * δu_i_sub_1_2_N2 )    
+                #N2 interpolation
+                u_i_plus_1_2_L_N2, u_i_plus_1_2_R_N2, u_i_sub_1_2_L_N2, u_i_sub_1_2_R_N2 = PPM_N2(grid, i, j, k)
 
-                #δu calculations in N3 - direction
-                δu_i_plus_1_2_N3 = grid[i, j, k+1,:] .- grid[i, j, k,  :]
-                δu_i_sub_1_2_N3  = grid[i, j, k,  :] .- grid[i, j, k-2,:]
-                δu_i_plus_3_2_N3 = grid[i, j, k+2,:] .- grid[i, j, k+1,:]
-                δu_i_sub_3_2_N3  = grid[i, j, k-1,:] .- grid[i, j, k-2,:]                
-                
-                #r calculations in N3 - direction
-		r_i_N3        = (grid[i, j, k,  :] .- grid[i, j, k-1,:]) ./ (grid[i, j, k+1,:] .- grid[i, j, k,  :])
-                r_i_plus_1_N3 = (grid[i, j, k+1,:] .- grid[i, j, k,  :]) ./ (grid[i, j, k+2,:] .- grid[i, j, k+1,:])
-                r_i_sub_1_N3  = (grid[i, j, k-1,:] .- grid[i, j, k-2,:]) ./ (grid[i, j, k,  :] .- grid[i, j, k-1,:])
-                
-                #Final N3 interpolation
-                u_i_plus_1_2_L_N3 = grid[i, j, k,  :] .+ minmod(r_i_N3       )/4 .* ((1-κ)* δu_i_sub_1_2_N3  .+ (1+κ) * δu_i_plus_1_2_N3)
-                u_i_plus_1_2_R_N3 = grid[i, j, k+1,:] .- minmod(r_i_plus_1_N3)/4 .* ((1-κ)* δu_i_plus_3_2_N3 .+ (1+κ) * δu_i_plus_1_2_N3)                
-                u_i_sub_1_2_L_N3  = grid[i, j, k-1,:] .+ minmod(r_i_sub_1_N3 )/4 .* ((1-κ)* δu_i_sub_3_2_N3  .+ (1+κ) * δu_i_sub_1_2_N3 )
-                u_i_sub_1_2_R_N3  = grid[i, j, k,  :] .- minmod(r_i_N3       )/4 .* ((1-κ)* δu_i_plus_1_2_N3 .+ (1+κ) * δu_i_sub_1_2_N3 )
+                #N3 interpolation
+                u_i_plus_1_2_L_N3, u_i_plus_1_2_R_N3, u_i_sub_1_2_L_N3, u_i_sub_1_2_R_N3 = PPM_N3(grid, i, j, k)
                 
                 
-                u_i_plus_1_2_L_N1 = grid[i, j, k,  :] .+ minmod(r_i_N1       )/4 .* ((1-κ)* δu_i_sub_1_2_N1  .+ (1+κ) * δu_i_plus_1_2_N1)
-                u_i_plus_1_2_R_N1 = grid[i+1, j, k,:] .- minmod(r_i_plus_1_N1)/4 .* ((1-κ)* δu_i_plus_3_2_N1 .+ (1+κ) * δu_i_plus_1_2_N1)                
-                u_i_sub_1_2_L_N1  = grid[i-1, j, k,:] .+ minmod(r_i_sub_1_N1 )/4 .* ((1-κ)* δu_i_sub_3_2_N1  .+ (1+κ) * δu_i_sub_1_2_N1 )
-                u_i_sub_1_2_R_N1  = grid[i, j, k,  :] .- minmod(r_i_N1       )/4 .* ((1-κ)* δu_i_plus_1_2_N1 .+ (1+κ) * δu_i_sub_1_2_N1 )    
-
-
                 #Calculating Fluxes using interpolated values
-                PtoFx(u_i_sub_1_2_L_N1,  buffer_Fx_LL, Kerr_Schild_metric_cov(N1_grid[i], N2_grid[j], N3_grid[k], a), eos::Polytrope)
-                PtoFx(u_i_sub_1_2_R_N1,  buffer_Fx_LR, Kerr_Schild_metric_cov(N1_grid[i], N2_grid[j], N3_grid[k], a), eos::Polytrope)
-                PtoFx(u_i_plus_1_2_L_N1, buffer_Fx_RL, Kerr_Schild_metric_cov(N1_grid[i], N2_grid[j], N3_grid[k], a), eos::Polytrope)
-                PtoFx(u_i_plus_1_2_R_N1, buffer_Fx_RR, Kerr_Schild_metric_cov(N1_grid[i], N2_grid[j], N3_grid[k], a), eos::Polytrope)
+                PtoFx(u_i_sub_1_2_L_N1,  buffer_Fx_LL, Kerr_Schild_metric_cov((N1_grid[i]   + N1_grid[i-1])/2, N2_grid[j], N3_grid[k], a), eos)
+                PtoFx(u_i_sub_1_2_R_N1,  buffer_Fx_LR, Kerr_Schild_metric_cov((N1_grid[i]   + N1_grid[i-1])/2, N2_grid[j], N3_grid[k], a), eos)
+                PtoFx(u_i_plus_1_2_L_N1, buffer_Fx_RL, Kerr_Schild_metric_cov((N1_grid[i+1] + N1_grid[i])/2  , N2_grid[j], N3_grid[k], a), eos)
+                PtoFx(u_i_plus_1_2_R_N1, buffer_Fx_RR, Kerr_Schild_metric_cov((N1_grid[i+1] + N1_grid[i])/2  , N2_grid[j], N3_grid[k], a), eos)
                 
-                PtoFy(u_i_sub_1_2_L_N2,  buffer_Fy_LL, Kerr_Schild_metric_cov(N1_grid[i], N2_grid[j], N3_grid[k], a), eos::Polytrope)
-                PtoFy(u_i_sub_1_2_R_N2,  buffer_Fy_LR, Kerr_Schild_metric_cov(N1_grid[i], N2_grid[j], N3_grid[k], a), eos::Polytrope)
-                PtoFy(u_i_plus_1_2_L_N2, buffer_Fy_RL, Kerr_Schild_metric_cov(N1_grid[i], N2_grid[j], N3_grid[k], a), eos::Polytrope)
-                PtoFy(u_i_plus_1_2_R_N2, buffer_Fy_RR, Kerr_Schild_metric_cov(N1_grid[i], N2_grid[j], N3_grid[k], a), eos::Polytrope)
+                PtoFy(u_i_sub_1_2_L_N2,  buffer_Fy_LL, Kerr_Schild_metric_cov(N1_grid[i], (N2_grid[j]   + N2_grid[j-1])/2, N3_grid[k], a), eos)
+                PtoFy(u_i_sub_1_2_R_N2,  buffer_Fy_LR, Kerr_Schild_metric_cov(N1_grid[i], (N2_grid[j]   + N2_grid[j-1])/2, N3_grid[k], a), eos)
+                PtoFy(u_i_plus_1_2_L_N2, buffer_Fy_RL, Kerr_Schild_metric_cov(N1_grid[i], (N2_grid[j+1] + N2_grid[j])/2,   N3_grid[k], a), eos)
+                PtoFy(u_i_plus_1_2_R_N2, buffer_Fy_RR, Kerr_Schild_metric_cov(N1_grid[i], (N2_grid[j+1] + N2_grid[j])/2,   N3_grid[k], a), eos)
                 
-                PtoFz(u_i_sub_1_2_L_N3,  buffer_Fz_LL, Kerr_Schild_metric_cov(N1_grid[i], N2_grid[j], N3_grid[k], a), eos::Polytrope)
-                PtoFz(u_i_sub_1_2_R_N3,  buffer_Fz_LR, Kerr_Schild_metric_cov(N1_grid[i], N2_grid[j], N3_grid[k], a), eos::Polytrope)
-                PtoFz(u_i_plus_1_2_L_N3, buffer_Fz_RL, Kerr_Schild_metric_cov(N1_grid[i], N2_grid[j], N3_grid[k], a), eos::Polytrope)
-                PtoFz(u_i_plus_1_2_R_N3, buffer_Fz_RR, Kerr_Schild_metric_cov(N1_grid[i], N2_grid[j], N3_grid[k], a), eos::Polytrope)
+                PtoFz(u_i_sub_1_2_L_N3,  buffer_Fz_LL, Kerr_Schild_metric_cov(N1_grid[i], N2_grid[j], (N3_grid[k]   + N3_grid[k-1])/2, a), eos)
+                PtoFz(u_i_sub_1_2_R_N3,  buffer_Fz_LR, Kerr_Schild_metric_cov(N1_grid[i], N2_grid[j], (N3_grid[k]   + N3_grid[k-1])/2, a), eos)
+                PtoFz(u_i_plus_1_2_L_N3, buffer_Fz_RL, Kerr_Schild_metric_cov(N1_grid[i], N2_grid[j], (N3_grid[k+1] + N3_grid[k])/2,   a), eos)
+                PtoFz(u_i_plus_1_2_R_N3, buffer_Fz_RR, Kerr_Schild_metric_cov(N1_grid[i], N2_grid[j], (N3_grid[k+1] + N3_grid[k])/2,   a), eos)
+                
                 
                 #Velocities of the Magnetosonic Waves
-                V_left_left_N1   = MagnetosonicSpeed(u_i_sub_1_2_L_N1,  Kerr_Schild_metric_cov(N1_grid[i], N2_grid[j], N3_grid[k], a), eos::Polytrope)
-                V_left_right_N1  = MagnetosonicSpeed(u_i_sub_1_2_R_N1,  Kerr_Schild_metric_cov(N1_grid[i], N2_grid[j], N3_grid[k], a), eos::Polytrope)
-                V_right_left_N1  = MagnetosonicSpeed(u_i_plus_1_2_L_N1, Kerr_Schild_metric_cov(N1_grid[i], N2_grid[j], N3_grid[k], a), eos::Polytrope)
-                V_right_right_N1 = MagnetosonicSpeed(u_i_plus_1_2_R_N1, Kerr_Schild_metric_cov(N1_grid[i], N2_grid[j], N3_grid[k], a), eos::Polytrope)
+                V_LL_N1 = MagnetosonicSpeed(u_i_sub_1_2_L_N1,  Kerr_Schild_metric_cov((N1_grid[i]   + N1_grid[i-1])/2, N2_grid[j], N3_grid[k], a), eos)
+                V_LR_N1 = MagnetosonicSpeed(u_i_sub_1_2_R_N1,  Kerr_Schild_metric_cov((N1_grid[i]   + N1_grid[i-1])/2, N2_grid[j], N3_grid[k], a), eos)
+                V_RL_N1 = MagnetosonicSpeed(u_i_plus_1_2_L_N1, Kerr_Schild_metric_cov((N1_grid[i+1] + N1_grid[i])/2  , N2_grid[j], N3_grid[k], a), eos)
+                V_RR_N1 = MagnetosonicSpeed(u_i_plus_1_2_R_N1, Kerr_Schild_metric_cov((N1_grid[i+1] + N1_grid[i])/2  , N2_grid[j], N3_grid[k], a), eos)
 
-                V_left_left_N2   = MagnetosonicSpeed(u_i_sub_1_2_L_N2,  Kerr_Schild_metric_cov(N1_grid[i], N2_grid[j], N3_grid[k], a), eos::Polytrope)
-                V_left_right_N2  = MagnetosonicSpeed(u_i_sub_1_2_R_N2,  Kerr_Schild_metric_cov(N1_grid[i], N2_grid[j], N3_grid[k], a), eos::Polytrope)
-                V_right_left_N2  = MagnetosonicSpeed(u_i_plus_1_2_L_N2, Kerr_Schild_metric_cov(N1_grid[i], N2_grid[j], N3_grid[k], a), eos::Polytrope)
-                V_right_right_N2 = MagnetosonicSpeed(u_i_plus_1_2_R_N2, Kerr_Schild_metric_cov(N1_grid[i], N2_grid[j], N3_grid[k], a), eos::Polytrope)
+                V_LL_N2 = MagnetosonicSpeed(u_i_sub_1_2_L_N2,  Kerr_Schild_metric_cov(N1_grid[i], (N2_grid[j]   + N2_grid[j-1])/2, N3_grid[k], a), eos)
+                V_LR_N2 = MagnetosonicSpeed(u_i_sub_1_2_R_N2,  Kerr_Schild_metric_cov(N1_grid[i], (N2_grid[j]   + N2_grid[j-1])/2, N3_grid[k], a), eos)
+                V_RL_N2 = MagnetosonicSpeed(u_i_plus_1_2_L_N2, Kerr_Schild_metric_cov(N1_grid[i], (N2_grid[j+1] + N2_grid[j])/2,   N3_grid[k], a), eos)
+                V_RR_N2 = MagnetosonicSpeed(u_i_plus_1_2_R_N2, Kerr_Schild_metric_cov(N1_grid[i], (N2_grid[j+1] + N2_grid[j])/2,   N3_grid[k], a), eos)
 
-                V_left_left_N3   = MagnetosonicSpeed(u_i_sub_1_2_L_N3,  Kerr_Schild_metric_cov(N1_grid[i], N2_grid[j], N3_grid[k], a), eos::Polytrope)
-                V_left_right_N3  = MagnetosonicSpeed(u_i_sub_1_2_R_N3,  Kerr_Schild_metric_cov(N1_grid[i], N2_grid[j], N3_grid[k], a), eos::Polytrope)
-                V_right_left_N3  = MagnetosonicSpeed(u_i_plus_1_2_L_N3, Kerr_Schild_metric_cov(N1_grid[i], N2_grid[j], N3_grid[k], a), eos::Polytrope)
-                V_right_right_N3 = MagnetosonicSpeed(u_i_plus_1_2_R_N3, Kerr_Schild_metric_cov(N1_grid[i], N2_grid[j], N3_grid[k], a), eos::Polytrope)
+                V_LL_N3 = MagnetosonicSpeed(u_i_sub_1_2_L_N3,  Kerr_Schild_metric_cov(N1_grid[i], N2_grid[j], (N3_grid[k]   + N3_grid[k-1])/2, a), eos)
+                V_LR_N3 = MagnetosonicSpeed(u_i_sub_1_2_R_N3,  Kerr_Schild_metric_cov(N1_grid[i], N2_grid[j], (N3_grid[k]   + N3_grid[k-1])/2, a), eos)
+                V_RL_N3 = MagnetosonicSpeed(u_i_plus_1_2_L_N3, Kerr_Schild_metric_cov(N1_grid[i], N2_grid[j], (N3_grid[k+1] + N3_grid[k])/2,   a), eos)
+                V_RR_N3 = MagnetosonicSpeed(u_i_plus_1_2_R_N3, Kerr_Schild_metric_cov(N1_grid[i], N2_grid[j], (N3_grid[k+1] + N3_grid[k])/2,   a), eos)
+
+
+                #UR and UL calculations
+                PtoU(u_i_sub_1_2_L_N1,  ULL_N1,  Kerr_Schild_metric_cov((N1_grid[i]   + N1_grid[i-1])/2, N2_grid[j], N3_grid[k], a), eos)
+                PtoU(u_i_sub_1_2_R_N1,  ULR_N1,  Kerr_Schild_metric_cov((N1_grid[i]   + N1_grid[i-1])/2, N2_grid[j], N3_grid[k], a), eos)
+                PtoU(u_i_plus_1_2_L_N1, URL_N1,  Kerr_Schild_metric_cov((N1_grid[i+1] + N1_grid[i])/2  , N2_grid[j], N3_grid[k], a), eos)
+                PtoU(u_i_plus_1_2_R_N1, URR_N1,  Kerr_Schild_metric_cov((N1_grid[i+1] + N1_grid[i])/2  , N2_grid[j], N3_grid[k], a), eos)
                 
+                PtoU(u_i_sub_1_2_L_N2,  ULL_N2,  Kerr_Schild_metric_cov(N1_grid[i], (N2_grid[j]   + N2_grid[j-1])/2, N3_grid[k], a), eos)
+                PtoU(u_i_sub_1_2_R_N2,  ULR_N2,  Kerr_Schild_metric_cov(N1_grid[i], (N2_grid[j]   + N2_grid[j-1])/2, N3_grid[k], a), eos)
+                PtoU(u_i_plus_1_2_L_N2, URL_N2,  Kerr_Schild_metric_cov(N1_grid[i], (N2_grid[j+1] + N2_grid[j])/2,   N3_grid[k], a), eos)
+                PtoU(u_i_plus_1_2_R_N2, URR_N2,  Kerr_Schild_metric_cov(N1_grid[i], (N2_grid[j+1] + N2_grid[j])/2,   N3_grid[k], a), eos)
+                
+                PtoU(u_i_sub_1_2_L_N3,  ULL_N3,  Kerr_Schild_metric_cov(N1_grid[i], N2_grid[j], (N3_grid[k]   + N3_grid[k-1])/2, a), eos)
+                PtoU(u_i_sub_1_2_R_N3,  ULR_N3,  Kerr_Schild_metric_cov(N1_grid[i], N2_grid[j], (N3_grid[k]   + N3_grid[k-1])/2, a), eos)
+                PtoU(u_i_plus_1_2_L_N3, URL_N3,  Kerr_Schild_metric_cov(N1_grid[i], N2_grid[j], (N3_grid[k+1] + N3_grid[k])/2,   a), eos)
+                PtoU(u_i_plus_1_2_R_N3, URR_N3,  Kerr_Schild_metric_cov(N1_grid[i], N2_grid[j], (N3_grid[k+1] + N3_grid[k])/2,   a), eos)
+     
             end
         end
     end
