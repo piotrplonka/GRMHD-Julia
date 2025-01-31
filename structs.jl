@@ -277,6 +277,29 @@ function PtoF_Bx_By_Bz(x::AbstractVector, buffer::AbstractVector, gcov::Matrix{F
 	buffer[3] = sq_g*(b0*u3-b3*u0 + b1*u3-b3*u1 + b2*u3-b3*u2)
 end
 
+function Lorentz_factor(x::AbstractVector, gcov::Matrix{Float64}, eos::Polytrope)
+	
+	#Parameters
+	ρ::Float64  = x[1] #Density
+	u::Float64  = x[2] #Internal Energy 
+	u1::Float64 = x[3] #Contravariant Four-velocity in 1-direction
+	u2::Float64 = x[4] #Contravariant Four-velocity in 2-direction
+	u3::Float64 = x[5] #Contravariant Four-velocity in 3-direction   
+	B1::Float64 = x[6] #Magnetic field in 1-direction
+	B2::Float64 = x[7] #Magnetic field in 2-direction
+	B3::Float64 = x[8] #Magnetic field in 3-direction
+
+	#To find u0, we need to solve the quadratic equation g_ij*ui*uj = −1    
+	a::Float64 = gcov[1,1]   
+	b::Float64 = 2*gcov[1,2]*u1 + 2*gcov[1,3]*u2 + 2*gcov[1,4]*u3
+	c::Float64 = gcov[2,2]*u1*u1 + 2*gcov[2,3]*u1*u2 + 2*gcov[2,4]*u1*u3 + gcov[3,3]*u2*u2 + gcov[4,4]*u3*u3 + 2*gcov[3,4]*u2*u3 + 1
+
+	#For C=1 lorentz factor is:
+	γ::Float64 = (-b - sqrt(b^2 - 4*a*c))/(2*a)
+	return γ
+end
+
+
 function Jacobian(x::AbstractVector, buffer::AbstractVector, gcov::Matrix{Float64}, eos::Polytrope)
 	
 	
