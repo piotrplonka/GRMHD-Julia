@@ -233,7 +233,7 @@ function PtoFz(x::AbstractVector, buffer::AbstractVector, gcov::Matrix{Float64},
 
 end
 
-function PtoF_Bx_By_Bz(x::AbstractVector, buffer::AbstractVector, gcov::Matrix{Float64}, eos::Polytrope)
+function PtoF_Bx_By_Bz(x::AbstractVector, gcov::Matrix{Float64}, eos::Polytrope)
 	
 	#Parameters
 	ρ::Float64  = x[1] #Density
@@ -272,9 +272,10 @@ function PtoF_Bx_By_Bz(x::AbstractVector, buffer::AbstractVector, gcov::Matrix{F
 	sq_g::Float64 = sqrt_g(gcov) #square root of the determinant of the metric
 	
 	#Buffers
-	buffer[1] = sq_g*(b0*u1-b1*u0 + b2*u1-b1*u2 + b3*u1-b1*u3)
-	buffer[2] = sq_g*(b0*u2-b2*u0 + b1*u2-b2*u1 + b3*u2-b2*u3)
-	buffer[3] = sq_g*(b0*u3-b3*u0 + b1*u3-b3*u1 + b2*u3-b3*u2)
+	buffer_1::Float64 = sq_g*(b0*u1-b1*u0 + b2*u1-b1*u2 + b3*u1-b1*u3)
+	buffer_2::Float64 = sq_g*(b0*u2-b2*u0 + b1*u2-b2*u1 + b3*u2-b2*u3)
+	buffer_3::Float64 = sq_g*(b0*u3-b3*u0 + b1*u3-b3*u1 + b2*u3-b3*u2)
+	return buffer_1, buffer_2, buffer_3
 end
 
 function Lorentz_factor(x::AbstractVector, gcov::Matrix{Float64}, eos::Polytrope)

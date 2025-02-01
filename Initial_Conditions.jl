@@ -33,14 +33,14 @@ N3_grid = collect(range(N3_min, N3_max, length=N3))
     for j in 1:N2
         for k in 1:N3
             # Wzrost gęstości i energii w przestrzeni
-            grid[i, j, k, 1] = 0.005  + 0.2 * rand()  # Gęstość (rho)
-            grid[i, j, k, 2] = 0.24  + 0.2 * rand()  # Energia wewnętrzna (u)
-            grid[i, j, k, 3] = 0.0005 * rand()  # Prędkość U1
-            grid[i, j, k, 4] = 0.0005 * rand()  # Prędkość U2
-            grid[i, j, k, 5] = 0.0005 * rand()  # Prędkość U3
-            grid[i, j, k, 6] = 0.005 * rand()  # Pole magnetyczne B1
-            grid[i, j, k, 7] = 0.005 * rand()  # Pole magnetyczne B2
-            grid[i, j, k, 8] = 0.005 * rand()  # Pole magnetyczne B3
+            grid[i, j, k, 1] =  0.002 * rand()  # Gęstość (rho)
+            grid[i, j, k, 2] =  0.002 * rand()  # Energia wewnętrzna (u)
+            grid[i, j, k, 3] = -0.0002 * rand()  # Prędkość U1
+            grid[i, j, k, 4] = 0.0002 * rand()  # Prędkość U2
+            grid[i, j, k, 5] = -0.0002 * rand()  # Prędkość U3
+            grid[i, j, k, 6] = 0.002 * rand()  # Pole magnetyczne B1
+            grid[i, j, k, 7] = 0.002 * rand()  # Pole magnetyczne B2
+            grid[i, j, k, 8] = 0.002 * rand()  # Pole magnetyczne B3
         end
     end
 end

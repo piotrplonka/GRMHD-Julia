@@ -64,5 +64,5 @@ function MagnetosonicSpeed(x::AbstractVector, gcov::Matrix{Float64}, eos::Polytr
         Cs_mag2::Float64 = bsq/EF
         Cs2::Float64 = (eos.gamma * (eos.gamma - 1) * u )/(ρ + eos.gamma * u)
         
-	return sqrt(Cs2 + Cs_mag2 - Cs2*Cs_mag2) 
+	return sqrt(abs(Cs2 + Cs_mag2 ))#- Cs2*Cs_mag2)) 
 end
