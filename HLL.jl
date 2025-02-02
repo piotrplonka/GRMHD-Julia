@@ -41,19 +41,19 @@ UR_N3 = zeros(8)
 stupid_U = zeros(8)
 stupid_P = zeros(8)
 
-dx = (N1_grid[256]-N1_grid[1])/N1
-dy = (N1_grid[256]-N1_grid[1])/N1
-dz = (N1_grid[256]-N1_grid[1])/N1
+dx = (N1_grid[length(N1_grid)]-N1_grid[1])/N1
+dy = (N1_grid[length(N1_grid)]-N1_grid[1])/N1
+dz = (N1_grid[length(N1_grid)]-N1_grid[1])/N1
 c = 1.0
-tot =0
+tot = 0
 
 dt=0.3*dx/c
 
 T =3*dt
 println("Wykonuje przerzucenie z siatki primitive variable::",tot/T)
-for i in 1:N1
+@threads for i in 1:N1
 	for j in 1:N2
-		@threads  for k in 1:N3
+		  for k in 1:N3
 			buffer_P[i, j, k, :] .= grid[i, j, k, :]
 		end
 	end
@@ -62,20 +62,19 @@ end
 while tot < T
 	println("Krok:",tot/T)
 	println("Wykonuje obliczenie wartości zachowanych dla kroku:",tot/T)
-	for i in 1:N1
+@threads	for i in 1:N1
 		for j in 1:N2
-			 @threads  for k in 1:N3
+			   for k in 1:N3
 				PtoU(buffer_P[i, j, k, :],  stupid_U,  Kerr_Schild_metric_cov(N1_grid[i], N2_grid[j], N3_grid[k], a), eos)
 				buffer_U[i, j, k, :] .= stupid_U
 			end
 		end
 	end
 
-
 	println("Wykonuje obliczenie fluxów dla kroku: ",tot/T)
-	for i in 3:(N1-2)
+@threads	for i in 3:(N1-2)
 		for j in 3:(N2-2)
-	@threads for k in 3:(N3-2)
+		 for k in 3:(N3-2)
 		                     
 		        #N1 interpolation
 		        q_i_plus_1_2_N1, q_i_sub_1_2_N1 = WENOZ_vec(buffer_P[i-2, j, k, :], buffer_P[i-1, j, k, :], buffer_P[i, j, k, :], buffer_P[i+1, j, k, :], buffer_P[i+2, j, k, :])
@@ -130,27 +129,29 @@ while tot < T
 		        buffer_flux[i,j,k,1:5,3] .= (C_min_N3.*buffer_Fz_R[1:5] + C_max_N3.*buffer_Fz_L[1:5] - C_max_N3*C_min_N3*(UR_N3[1:5] .- UL_N3[1:5]))/(C_max_N3 + C_min_N3)
 		        
 		        #Curved spacetime fluxes for N1,N2,N3
-		        buffer_flux_GR[i,j,k,2:5] .= SourceGR(grid[i, j, k, :], Kerr_Schild_metric_cov(N1_grid[i], N2_grid[j], N3_grid[k], a), N1_grid[i], N2_grid[j], N3_grid[k], a, eos::Polytrope)
-		        buffer_flux_magnetic[i,j,k,:] .=  PtoF_Bx_By_Bz(grid[i, j, k, :], Kerr_Schild_metric_cov(N1_grid[i], N2_grid[j], N3_grid[k], a), eos::Polytrope)
+		      #  buffer_flux_GR[i,j,k,2:5] .= SourceGR(grid[i, j, k, :], Kerr_Schild_metric_cov(N1_grid[i], N2_grid[j], N3_grid[k], a), N1_grid[i], N2_grid[j], N3_grid[k], a, eos::Polytrope)
+		      #  buffer_flux_magnetic[i,j,k,:] .=  PtoF_Bx_By_Bz(grid[i, j, k, :], Kerr_Schild_metric_cov(N1_grid[i], N2_grid[j], N3_grid[k], a), eos::Polytrope)
 		        
 		    end
 		end
 	    end
 
 	println("Wykonuje przeliczenie nowych wartości zachowanych dla kroku: ",tot/T)
-	for i in 3:(N1-2)
+@threads	for i in 3:(N1-2)
 		for j in 3:(N2-2)
-		@threads for k in 3:(N3-2)
-				buffer_U[i,j,k, 1:5] .= buffer_U[i,j,k,1:5] .+ (dt/dx)*buffer_flux[i,j,k,1:5,1] .+ (dt/dy)*buffer_flux[i,j,k,1:5,2] .+ (dt/dz)*buffer_flux[i,j,k,1:5,3] .- buffer_flux_GR[i,j,k,1:5] *dt
-				buffer_U[i,j,k, 6:8] .= buffer_U[i,j,k, 6:8] .+ buffer_flux_magnetic[i,j,k,:] .* (dt/dx)
+			 for k in 3:(N3-2)
+				#println("Przed:",buffer_U[i,j,k, 1:5])
+				buffer_U[i,j,k, 1:5] .= buffer_U[i,j,k,1:5] .+ (dt/dx)*buffer_flux[i,j,k,1:5,1] .+ (dt/dy)*buffer_flux[i,j,k,1:5,2] .+ (dt/dz)*buffer_flux[i,j,k,1:5,3] #.- buffer_flux_GR[i,j,k,1:5] *dt
+				#println("Po:",buffer_U[i,j,k, 1:5])
+				#buffer_U[i,j,k, 6:8] .= buffer_U[i,j,k, 6:8] .+ buffer_flux_magnetic[i,j,k,:] .* (dt/dx)
 			end
 		end
 	end
 	println("Wykonuje obliczenie wartości primitive variable z wartości zachowanych: ",tot/T)
-	for i in 1:N1
+@threads	for i in 1:N1
 		for j in 1:N2
 		 for k in 1:N3
-				 buffer_P[i, j, k, :] .= UtoP(buffer_U[i,j,k,:], buffer_P[i,j,k,:].*1.4,  Kerr_Schild_metric_cov(N1_grid[i], N2_grid[j], N3_grid[k], a), eos::Polytrope)
+				 buffer_P[i, j, k, :] .= UtoP(buffer_U[i,j,k,:], buffer_P[i,j,k,:],  Kerr_Schild_metric_cov(N1_grid[i], N2_grid[j], N3_grid[k], a), eos::Polytrope)
 			end
 		end
 	end

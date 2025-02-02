@@ -7,7 +7,7 @@ function Schwarzschild_metric_cov(r::Float64, θ::Float64, φ::Float64)
 	return g
 end
 
-function Kerr_Schild_metric_cov(r::Float64, θ::Float64, φ::Float64, a::Float64)
+function Kerr_Schild_metric_cov_true(r::Float64, θ::Float64, φ::Float64, a::Float64)
 	g = zeros(4, 4)
 	cos_θ = cos(θ)
 	r_2 = r^2
@@ -43,6 +43,16 @@ function Kerr_Schild_metric_cov(r::Float64, θ::Float64, φ::Float64, a::Float64
 	g[4, 4] = (a_2*(a_2*cos_θ_2 + r_2 + 2*r)*sine_θ_2 + (a_2*cos_θ_2 + r_2)^2)*sine_θ_2/(a_2*cos_θ_2 + r_2)
 	return g
 end
+
+function Kerr_Schild_metric_cov(r::Float64, θ::Float64, φ::Float64, a::Float64)
+	g = zeros(4, 4)
+	g[1, 1] = -1.0
+	g[2, 2] =  1.0
+	g[3, 3] =  1.0
+	g[4, 4] =  1.0
+	return g
+end
+
 
 	
 function Kerr_metric_cov(r::Float64, θ::Float64, φ::Float64, a::Float64)
