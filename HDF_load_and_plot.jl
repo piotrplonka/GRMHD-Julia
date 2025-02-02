@@ -14,7 +14,7 @@ function load_dump_HDF(num::Int64)
 end
 
 # Przykładowe wczytanie dumpa o numerze 1
-grid_data_loaded = load_dump_HDF(10)
+grid_data_loaded = load_dump_HDF(1)
 println("Wczytano dane z dump1.h5")
 
 # Przykładowe rozmiary siatki
@@ -37,4 +37,4 @@ p = heatmap(N1_grid, N3_grid, density_slice',
     colorbar_title = "Gęstość")
 
 # Zapisanie wykresu do pliku PNG
-savefig(p, "density_plot_11.png")
+savefig(p, "density_plot_1.png")

@@ -52,29 +52,40 @@ tot = 0
 dt=0.05*dx/c
 
 T =100*dt
-println("Wykonuje przerzucenie z siatki primitive variable::",tot/T)
+println("Wykonuje przerzucenie z siatki primitive variable.",tot/T)
 for i in 1:N1
 	for j in 1:N2
 		for k in 1:N3
 			buffer_P[i, j, k, :] .= grid[i, j, k, :]
+			
+			if buffer_P[i, j, k, 1] < 0
+        			println(buffer_P[i, j, k, 1])
+        			buffer_P[i, j, k, 1] = 1e-8
+    			end
+    			
+    			if buffer_P[i, j, k, 2] < 0
+       				println(buffer_P[i, j, k, 2])
+       				buffer_P[i, j, k, 2] = 1e-8
+       			end
 		end
 	end
 end
+
+println("Wykonuje obliczenie wartości zachowanych.")
+for i in 1:N1
+	for j in 1:N2
+		for k in 1:N3
+			PtoU(buffer_P[i, j, k, :],  stupid_U,  Kerr_Schild_metric_cov(N1_grid[i], N2_grid[j], N3_grid[k], a), eos)
+			buffer_U[i, j, k, :] .= stupid_U
+		end
+	end
+end
+
 number_of_iteration ::Int64 = 0
 while tot < T
 	println("Krok:",tot/T)
-	println(size(buffer_P))
-	#save_dump_HDF(number_of_iteration, buffer_P)
-	println("Wykonuje obliczenie wartości zachowanych dla kroku:",tot/T)
-	for i in 1:N1
-		for j in 1:N2
-			for k in 1:N3
-				PtoU(buffer_P[i, j, k, :],  stupid_U,  Kerr_Schild_metric_cov(N1_grid[i], N2_grid[j], N3_grid[k], a), eos)
-				buffer_U[i, j, k, :] .= stupid_U
-			end
-		end
-	end
-
+	#println(size(buffer_P))
+	save_dump_HDF(number_of_iteration, buffer_P)
 	println("Wykonuje obliczenie fluxów dla kroku: ",tot/T)
 	for i in 3:(N1-2)
 		for j in 3:(N2-2)
@@ -173,10 +184,10 @@ while tot < T
 		for j in 3:(N2-2)
 			 for k in 3:(N3-2)
 				#println("Przed:",buffer_U[i,j,k, 1:5])
-				buffer_U[i,j,k, 1:5] .= buffer_U[i,j,k,1:5] .+ (dt/dx)*buffer_flux[i,j,k,1:5,1] .+ (dt/dy)*buffer_flux[i,j,k,1:5,2] .+ (dt/dz)*buffer_flux[i,j,k,1:5,3] #.- buffer_flux_GR[i,j,k,1:5] *dt 
-				buffer_U[i,j,k, 6]   = buffer_U[i,j,k, 6] + (dt/dx)*buffer_flux_magnetic[i,j,k,1]
-				buffer_U[i,j,k, 7]   = buffer_U[i,j,k, 7] + (dt/dy)*buffer_flux_magnetic[i,j,k,2]
-				buffer_U[i,j,k, 8]   = buffer_U[i,j,k, 8] + (dt/dz)*buffer_flux_magnetic[i,j,k,3]
+				buffer_U[i,j,k, 1:5] .= buffer_U[i,j,k,1:5] .- (dt/dx)*buffer_flux[i,j,k,1:5,1] .- (dt/dy)*buffer_flux[i,j,k,1:5,2] .- (dt/dz)*buffer_flux[i,j,k,1:5,3] #.- buffer_flux_GR[i,j,k,1:5] *dt 
+				buffer_U[i,j,k, 6]    = buffer_U[i,j,k, 6]   - (dt/dx)*buffer_flux_magnetic[i,j,k,1]
+				buffer_U[i,j,k, 7]    = buffer_U[i,j,k, 7]   - (dt/dy)*buffer_flux_magnetic[i,j,k,2]
+				buffer_U[i,j,k, 8]    = buffer_U[i,j,k, 8]   - (dt/dz)*buffer_flux_magnetic[i,j,k,3]
 				#println("Po:",buffer_U[i,j,k, 1:5])
 				#buffer_U[i,j,k, 6:8] .= buffer_U[i,j,k, 6:8] .+ buffer_flux_magnetic[i,j,k,:] .* (dt/dx)
 			end
@@ -188,9 +199,21 @@ while tot < T
 		for j in 1:N2
 			for k in 1:N3
 				buffer_P[i, j, k, :] .= UtoP(buffer_U[i,j,k,:], buffer_P[i,j,k,:],  Kerr_Schild_metric_cov(N1_grid[i], N2_grid[j], N3_grid[k], a), eos::Polytrope)
+				
+				if buffer_P[i, j, k, 1] < 0
+                			println(buffer_P[i, j, k, 1])
+                			buffer_P[i, j, k, 1] = 1e-8
+            			end
+            			
+            			if buffer_P[i, j, k, 2] < 0
+               				println(buffer_P[i, j, k, 2])
+               				buffer_P[i, j, k, 2] = 1e-8
+               			end
 			end
 		end
 	end
+	
+	
 	number_of_iteration = number_of_iteration + 1
 	tot = tot + dt
 end
