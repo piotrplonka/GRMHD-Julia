@@ -62,8 +62,8 @@ for i in 1:N1
                 internal_energy = 2.0 + 0.2 * cos(r)  # można dodać perturbacje zależne od r
             else
                 # Poza gwiazdą – niska gęstość otoczenia (atmosfera)
-                density = 1.0e-2
-                internal_energy = 1.0e-2
+                density = 1.0e-1
+                internal_energy = 1.0e-1
             end
             grid[i, j, k, 1] = density
             grid[i, j, k, 2] = internal_energy

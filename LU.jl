@@ -81,3 +81,15 @@ function invert_matrix_lu_manual(A::Array{Float64,2})
     return invA
 end
 
+
+function solve_lu(A::Array{Float64,2}, b::Vector{Float64})
+    L, U, p = lu_decomposition(copy(A))
+    n = length(b)
+    bp = zeros(Float64, n)
+    for i in 1:n
+        bp[i] = b[p[i]]
+    end
+    y = forward_substitution(L, bp)
+    x = backward_substitution(U, y)
+    return x
+end

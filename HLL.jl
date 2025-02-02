@@ -49,10 +49,10 @@ dz = (N1_grid[length(N1_grid)]-N1_grid[1])/N3
 c = 1.0
 tot = 0
 
-dt=0.05*dx/c
+dt=0.3*dx/c
 
 T =100*dt
-println("Wykonuje przerzucenie z siatki primitive variable.",tot/T)
+println("Wykonuje przerzucenie z siatki primitive variable.")
 for i in 1:N1
 	for j in 1:N2
 		for k in 1:N3
@@ -60,12 +60,12 @@ for i in 1:N1
 			
 			if buffer_P[i, j, k, 1] < 0
         			println(buffer_P[i, j, k, 1])
-        			buffer_P[i, j, k, 1] = 1e-8
+        			buffer_P[i, j, k, 1] = 1e-5
     			end
     			
     			if buffer_P[i, j, k, 2] < 0
        				println(buffer_P[i, j, k, 2])
-       				buffer_P[i, j, k, 2] = 1e-8
+       				buffer_P[i, j, k, 2] = 1e-5
        			end
 		end
 	end
@@ -82,11 +82,12 @@ for i in 1:N1
 end
 
 number_of_iteration ::Int64 = 0
+
 while tot < T
 	println("Krok:",tot/T)
 	#println(size(buffer_P))
 	save_dump_HDF(number_of_iteration, buffer_P)
-	println("Wykonuje obliczenie fluxów dla kroku: ",tot/T)
+	println("Wykonuje obliczenie fluxów dla kroku: "," ",number_of_iteration)
 	for i in 3:(N1-2)
 		for j in 3:(N2-2)
 			for k in 3:(N3-2)
@@ -179,7 +180,7 @@ while tot < T
 		end
 	end
 
-	println("Wykonuje przeliczenie nowych wartości zachowanych dla kroku: ",tot/T)
+	println("Wykonuje przeliczenie nowych wartości zachowanych dla kroku: "," ",number_of_iteration)
 	for i in 3:(N1-2)
 		for j in 3:(N2-2)
 			 for k in 3:(N3-2)
@@ -194,20 +195,20 @@ while tot < T
 		end
 	end
 	
-	println("Wykonuje obliczenie wartości primitive variable z wartości zachowanych: ",tot/T)
+	println("Wykonuje obliczenie wartości primitive variable z wartości zachowanych: "," ",number_of_iteration)
 	for i in 1:N1
 		for j in 1:N2
 			for k in 1:N3
-				buffer_P[i, j, k, :] .= UtoP(buffer_U[i,j,k,:], buffer_P[i,j,k,:],  Kerr_Schild_metric_cov(N1_grid[i], N2_grid[j], N3_grid[k], a), eos::Polytrope)
+				buffer_P[i, j, k, :] .= UtoP_LU(buffer_U[i,j,k,:], buffer_P[i,j,k,:],  Kerr_Schild_metric_cov(N1_grid[i], N2_grid[j], N3_grid[k], a), eos::Polytrope)
 				
-				if buffer_P[i, j, k, 1] < 0
+				if buffer_P[i, j, k, 1] < 1e-5
                 			println(buffer_P[i, j, k, 1])
-                			buffer_P[i, j, k, 1] = 1e-8
+                			buffer_P[i, j, k, 1] = 1e-5
             			end
             			
-            			if buffer_P[i, j, k, 2] < 0
+            			if buffer_P[i, j, k, 2] < 1e-5
                				println(buffer_P[i, j, k, 2])
-               				buffer_P[i, j, k, 2] = 1e-8
+               				buffer_P[i, j, k, 2] = 1e-5
                			end
 			end
 		end

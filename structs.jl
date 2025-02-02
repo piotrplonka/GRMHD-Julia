@@ -669,3 +669,45 @@ function UtoP(U::AbstractVector, initial_guess::AbstractVector, gcov::Matrix{Flo
     
     return x
 end
+
+function UtoP_LU(U::AbstractVector, initial_guess::AbstractVector, gcov::Matrix{Float64}, eos::Polytrope)
+    max_iter::Int64 = 10000       
+    buff_jac = MVector{25, Float64}(zeros(25))
+    buff_fun = MVector{8, Float64}(zeros(8))
+    buff_jac_reshape = zeros(5,5)     
+
+    sq_g::Float64 = sqrt_g(gcov)      
+    x = copy(initial_guess)           
+
+    x[6] = U[6] / sq_g 
+    x[7] = U[7] / sq_g 
+    x[8] = U[8] / sq_g 
+
+    for iter in 1:max_iter
+        Jacobian(x, buff_jac, gcov, eos)
+        buff_jac_reshape = Matrix(reshape(buff_jac, 5, 5)')
+        PtoU(x, buff_fun, gcov, eos)
+        for i in 1:5
+            buff_fun[i] = buff_fun[i] - U[i]
+        end
+        delta = solve_lu(buff_jac_reshape, buff_fun[1:5])
+        for i in 1:5
+            x[i] -= delta[i]
+        end
+        res_norm = sqrt(sum(buff_fun[i]^2 for i in 1:5))
+        if res_norm < 1e-8
+        	if iter > 10
+            		println(iter)
+            		println(res_norm)
+            	end
+            break
+        end
+    end
+
+    final_res = sqrt(sum(buff_fun[i]^2 for i in 1:5))
+    if final_res > 1e-5
+        error("Nie zbiegło!!! Residuum = $final_res")
+    end
+
+    return x
+end
