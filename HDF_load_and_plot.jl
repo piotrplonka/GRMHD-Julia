@@ -14,7 +14,7 @@ function load_dump_HDF(num::Int64)
 end
 
 	
-for i in 1:10
+for i in 1:32
 	grid_data_loaded = load_dump_HDF(i)
 	println("Wczytano dane z dump_$i.h5")
 
