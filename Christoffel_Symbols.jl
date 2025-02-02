@@ -7,7 +7,7 @@ function Schwarzschild_metric_cov(r::Float64, θ::Float64, φ::Float64)
 	return g
 end
 
-function Kerr_Schild_metric_cov_true(r::Float64, θ::Float64, φ::Float64, a::Float64)
+function Kerr_Schild_metric_cov_TTT(r::Float64, θ::Float64, φ::Float64, a::Float64)
 	g = zeros(4, 4)
 	cos_θ = cos(θ)
 	r_2 = r^2

@@ -1,6 +1,6 @@
 using LinearAlgebra
 
-function cmin_cmax_N1(q_i_sub_1_2::AbstractVector,q_i_plus_1_2::AbstractVector,V_L::Float64,V_R::Float64, i::Int64, j::Int64, k::Int64, a::Float64, eos::Polytrope)
+function cmin_cmax_N1(q_i_sub_1_2::AbstractVector,q_i_plus_1_2::AbstractVector,CL::Float64,CR::Float64, i::Int64, j::Int64, k::Int64, a::Float64, eos::Polytrope)
 
         lorL::Float64 = Lorentz_factor(q_i_sub_1_2,  Kerr_Schild_metric_cov((N1_grid[i]   + N1_grid[i-1])/2, N2_grid[j], N3_grid[k], a), eos)
        	lorR::Float64 = Lorentz_factor(q_i_plus_1_2, Kerr_Schild_metric_cov((N1_grid[i+1] + N1_grid[i])/2  , N2_grid[j], N3_grid[k], a), eos)
@@ -8,11 +8,11 @@ function cmin_cmax_N1(q_i_sub_1_2::AbstractVector,q_i_plus_1_2::AbstractVector,V
         vL::Float64 = q_i_sub_1_2[3]  / lorL
         vR::Float64 = q_i_plus_1_2[3] / lorR
             	
-        sigma_S_L::Float64 = V_L^2 / ( lorL^2 * (1-V_L^2))
-        sigma_S_R::Float64 = V_R^2 / ( lorR^2 * (1-V_R^2))
+        sigma_S_L = CL^2 / ( lorL^2 * (1-CL^2))
+        sigma_S_R = CR^2 / ( lorR^2 * (1-CR^2))
         	
-        C_max::Float64 =  max( (vL + sqrt(abs(sigma_S_L * (1-vL^2 + sigma_S_L)) )) / (1 + sigma_S_L), (vR + sqrt(abs(sigma_S_R * (1-vR^2 + sigma_S_R)) ) / (1 + sigma_S_R))) 
-        C_min::Float64 = -min( (vL - sqrt(abs(sigma_S_L * (1-vL^2 + sigma_S_L)) )) / (1 + sigma_S_L), (vR - sqrt(abs(sigma_S_R * (1-vR^2 + sigma_S_R)) ) / (1 + sigma_S_R))) 
+        C_max = max( (vL + sqrt(sigma_S_L * (1-vL^2 + sigma_S_L)) ) / (1 + sigma_S_L), (vR + sqrt(sigma_S_R * (1-vR^2 + sigma_S_R)) ) / (1 + sigma_S_R)) # velocity composition
+        C_min = -min( (vL - sqrt(sigma_S_L * (1-vL^2 + sigma_S_L)) ) / (1 + sigma_S_L), (vR - sqrt(sigma_S_R * (1-vR^2 + sigma_S_R)) ) / (1 + sigma_S_R)) # velocity composition
         
 	return C_max, C_min
 end
@@ -28,8 +28,8 @@ function cmin_cmax_N2(q_i_sub_1_2::AbstractVector,q_i_plus_1_2::AbstractVector,V
         sigma_S_L::Float64 = V_L^2 / ( lorL^2 * (1-V_L^2))
         sigma_S_R::Float64 = V_R^2 / ( lorR^2 * (1-V_R^2))
         	
-        C_max::Float64 =  max( (vL + sqrt(abs(sigma_S_L * (1-vL^2 + sigma_S_L)) )) / (1 + sigma_S_L), (vR + sqrt(abs(sigma_S_R * (1-vR^2 + sigma_S_R)) ) / (1 + sigma_S_R))) 
-        C_min::Float64 = -min( (vL - sqrt(abs(sigma_S_L * (1-vL^2 + sigma_S_L)) )) / (1 + sigma_S_L), (vR - sqrt(abs(sigma_S_R * (1-vR^2 + sigma_S_R)) ) / (1 + sigma_S_R))) 
+        C_max::Float64 =  max( (vL + sqrt((sigma_S_L * (1-vL^2 + sigma_S_L)) )) / (1 + sigma_S_L), (vR + sqrt((sigma_S_R * (1-vR^2 + sigma_S_R)) ) / (1 + sigma_S_R))) 
+        C_min::Float64 = -min( (vL - sqrt((sigma_S_L * (1-vL^2 + sigma_S_L)) )) / (1 + sigma_S_L), (vR - sqrt((sigma_S_R * (1-vR^2 + sigma_S_R)) ) / (1 + sigma_S_R))) 
         
 	return C_max, C_min
 end
@@ -45,8 +45,8 @@ function cmin_cmax_N3(q_i_sub_1_2::AbstractVector,q_i_plus_1_2::AbstractVector,V
         sigma_S_L::Float64 = V_L^2 / ( lorL^2 * (1-V_L^2))
         sigma_S_R::Float64 = V_R^2 / ( lorR^2 * (1-V_R^2))
         	
-        C_max::Float64 =  max( (vL + sqrt(abs(sigma_S_L * (1-vL^2 + sigma_S_L)) )) / (1 + sigma_S_L), (vR + sqrt(abs(sigma_S_R * (1-vR^2 + sigma_S_R)) ) / (1 + sigma_S_R))) 
-        C_min::Float64 = -min( (vL - sqrt(abs(sigma_S_L * (1-vL^2 + sigma_S_L)) )) / (1 + sigma_S_L), (vR - sqrt(abs(sigma_S_R * (1-vR^2 + sigma_S_R)) ) / (1 + sigma_S_R))) 
+        C_max::Float64 =  max( (vL + sqrt((sigma_S_L * (1-vL^2 + sigma_S_L)) )) / (1 + sigma_S_L), (vR + sqrt((sigma_S_R * (1-vR^2 + sigma_S_R)) ) / (1 + sigma_S_R))) 
+        C_min::Float64 = -min( (vL - sqrt((sigma_S_L * (1-vL^2 + sigma_S_L)) )) / (1 + sigma_S_L), (vR - sqrt((sigma_S_R * (1-vR^2 + sigma_S_R)) ) / (1 + sigma_S_R))) 
         
 	return C_max, C_min
 end

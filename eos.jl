@@ -12,8 +12,17 @@ end
 
 eos = Polytrope(5/3)
 
-function SoundSpeed(rho::Float64,u::Float64,eos::Polytrope)::Float64
-    return sqrt((eos.gamma * (eos.gamma - 1) * u )/(rho + eos.gamma * u))
+function SoundSpeed(x::AbstractVector, gcov::Matrix{Float64}, eos::Polytrope)
+	#Parameters
+	ρ::Float64  = x[1] #Density
+	u::Float64  = x[2] #Internal Energy 
+	u1::Float64 = x[3] #Contravariant Four-velocity in 1-direction
+	u2::Float64 = x[4] #Contravariant Four-velocity in 2-direction
+	u3::Float64 = x[5] #Contravariant Four-velocity in 3-direction   
+	B1::Float64 = x[6] #Magnetic field in 1-direction
+	B2::Float64 = x[7] #Magnetic field in 2-direction
+	B3::Float64 = x[8] #Magnetic field in 3-direction
+return sqrt((eos.gamma * (eos.gamma - 1) * u )/(ρ + eos.gamma * u))
 end
 
 
@@ -64,5 +73,5 @@ function MagnetosonicSpeed(x::AbstractVector, gcov::Matrix{Float64}, eos::Polytr
         Cs_mag2::Float64 = bsq/EF
         Cs2::Float64 = (eos.gamma * (eos.gamma - 1) * u )/(ρ + eos.gamma * u)
         
-	return sqrt(abs(Cs2 + Cs_mag2 ))#- Cs2*Cs_mag2)) 
+	return sqrt(Cs2 + Cs_mag2- Cs2*Cs_mag2) 
 end

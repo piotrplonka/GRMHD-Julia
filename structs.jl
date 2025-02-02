@@ -234,7 +234,7 @@ function PtoFz(x::AbstractVector, buffer::AbstractVector, gcov::Matrix{Float64},
 
 end
 
-function PtoF_Bx_By_Bz(x::AbstractVector, gcov::Matrix{Float64}, eos::Polytrope)
+function PtoF_Bx(x::AbstractVector, gcov::Matrix{Float64}, eos::Polytrope)
 	
 	#Parameters
 	ρ ::Float64 = x[1] #Density
@@ -283,9 +283,113 @@ function PtoF_Bx_By_Bz(x::AbstractVector, gcov::Matrix{Float64}, eos::Polytrope)
 	
 	#Buffers
 	buffer_1::Float64 = sq_g*(b⁰*u¹-b¹*u⁰ + b²*u¹-b¹*u² + b³*u¹-b¹*u³)
+
+	return buffer_1
+end
+
+function PtoF_By(x::AbstractVector, gcov::Matrix{Float64}, eos::Polytrope)
+	
+	#Parameters
+	ρ ::Float64 = x[1] #Density
+	u ::Float64 = x[2] #Internal Energy 
+	u¹::Float64 = x[3] #Contravariant Four-velocity in 1-direction
+	u²::Float64 = x[4] #Contravariant Four-velocity in 2-direction
+	u³::Float64 = x[5] #Contravariant Four-velocity in 3-direction   
+	B¹::Float64 = x[6] #Magnetic field in 1-direction
+	B²::Float64 = x[7] #Magnetic field in 2-direction
+	B³::Float64 = x[8] #Magnetic field in 3-direction
+
+	#To find u⁰, we need to solve the quadratic equation g_ij*ui*uj = −1    
+	a::Float64 = gcov[1,1]   
+	b::Float64 = 2*gcov[1,2]*u¹ + 2*gcov[1,3]*u² + 2*gcov[1,4]*u³
+	c::Float64 = gcov[2,2]*u¹*u¹ + 2*gcov[2,3]*u¹*u² + 2*gcov[2,4]*u¹*u³ + gcov[3,3]*u²*u² + gcov[4,4]*u³*u³ + 2*gcov[3,4]*u²*u³ + 1
+
+	#Contravariant Four-velocity
+	u⁰::Float64 = (-b - sqrt(b^2 - 4*a*c))/(2*a)
+       #u¹::Float64 = x[3]
+       #u²::Float64 = x[4]
+       #u³::Float64 = x[5]
+
+	#Covariant Four-velocity
+	u₀::Float64 = u⁰*gcov[1,1] + u¹*gcov[2,1] + u²*gcov[3,1] + u³*gcov[4,1]
+	u₁::Float64 = u⁰*gcov[1,2] + u¹*gcov[2,2] + u²*gcov[3,2] + u³*gcov[4,2]
+	u₂::Float64 = u⁰*gcov[1,3] + u¹*gcov[2,3] + u²*gcov[3,3] + u³*gcov[4,3]
+	u₃::Float64 = u⁰*gcov[1,4] + u¹*gcov[2,4] + u²*gcov[3,4] + u³*gcov[4,4]
+
+	#Contravariant Four-magnetic field
+	b⁰::Float64 = B¹*u₁ + B²*u₂ + B³*u₃
+	b¹::Float64 = (B¹ + b⁰*u¹)/u⁰
+	b²::Float64 = (B² + b⁰*u²)/u⁰
+	b³::Float64 = (B³ + b⁰*u³)/u⁰
+
+	#Covariant Four-magnetic field    
+	b₀::Float64 = b⁰*gcov[1,1] + b¹*gcov[1,2] + b²*gcov[1,3] + b³*gcov[1,4]
+	b₁::Float64 = b⁰*gcov[2,1] + b¹*gcov[2,2] + b²*gcov[2,3] + b³*gcov[2,4]
+	b₂::Float64 = b⁰*gcov[3,1] + b¹*gcov[3,2] + b²*gcov[3,3] + b³*gcov[3,4]
+	b₃::Float64 = b⁰*gcov[4,1] + b¹*gcov[4,2] + b²*gcov[4,3] + b³*gcov[4,4]
+
+	#Useful Values        
+	bsq   ::Float64 = b⁰*b₀ + b¹*b₁ + b²*b₂ + b³*b₃
+	value ::Float64 = ρ + u + (eos.gamma - 1)*u + bsq # ρ + u + p 
+	value2::Float64 = (eos.gamma - 1)*u + (1/2)*bsq   # p + (1/2)*bsq
+	sq_g  ::Float64 = sqrt_g(gcov)                    #square root of the determinant of the metric
+	
+	#Buffers
 	buffer_2::Float64 = sq_g*(b⁰*u²-b²*u⁰ + b¹*u²-b²*u¹ + b³*u²-b²*u³)
+	
+	return buffer_2
+end
+
+function PtoF_Bz(x::AbstractVector, gcov::Matrix{Float64}, eos::Polytrope)
+	
+	#Parameters
+	ρ ::Float64 = x[1] #Density
+	u ::Float64 = x[2] #Internal Energy 
+	u¹::Float64 = x[3] #Contravariant Four-velocity in 1-direction
+	u²::Float64 = x[4] #Contravariant Four-velocity in 2-direction
+	u³::Float64 = x[5] #Contravariant Four-velocity in 3-direction   
+	B¹::Float64 = x[6] #Magnetic field in 1-direction
+	B²::Float64 = x[7] #Magnetic field in 2-direction
+	B³::Float64 = x[8] #Magnetic field in 3-direction
+
+	#To find u⁰, we need to solve the quadratic equation g_ij*ui*uj = −1    
+	a::Float64 = gcov[1,1]   
+	b::Float64 = 2*gcov[1,2]*u¹ + 2*gcov[1,3]*u² + 2*gcov[1,4]*u³
+	c::Float64 = gcov[2,2]*u¹*u¹ + 2*gcov[2,3]*u¹*u² + 2*gcov[2,4]*u¹*u³ + gcov[3,3]*u²*u² + gcov[4,4]*u³*u³ + 2*gcov[3,4]*u²*u³ + 1
+
+	#Contravariant Four-velocity
+	u⁰::Float64 = (-b - sqrt(b^2 - 4*a*c))/(2*a)
+       #u¹::Float64 = x[3]
+       #u²::Float64 = x[4]
+       #u³::Float64 = x[5]
+
+	#Covariant Four-velocity
+	u₀::Float64 = u⁰*gcov[1,1] + u¹*gcov[2,1] + u²*gcov[3,1] + u³*gcov[4,1]
+	u₁::Float64 = u⁰*gcov[1,2] + u¹*gcov[2,2] + u²*gcov[3,2] + u³*gcov[4,2]
+	u₂::Float64 = u⁰*gcov[1,3] + u¹*gcov[2,3] + u²*gcov[3,3] + u³*gcov[4,3]
+	u₃::Float64 = u⁰*gcov[1,4] + u¹*gcov[2,4] + u²*gcov[3,4] + u³*gcov[4,4]
+
+	#Contravariant Four-magnetic field
+	b⁰::Float64 = B¹*u₁ + B²*u₂ + B³*u₃
+	b¹::Float64 = (B¹ + b⁰*u¹)/u⁰
+	b²::Float64 = (B² + b⁰*u²)/u⁰
+	b³::Float64 = (B³ + b⁰*u³)/u⁰
+
+	#Covariant Four-magnetic field    
+	b₀::Float64 = b⁰*gcov[1,1] + b¹*gcov[1,2] + b²*gcov[1,3] + b³*gcov[1,4]
+	b₁::Float64 = b⁰*gcov[2,1] + b¹*gcov[2,2] + b²*gcov[2,3] + b³*gcov[2,4]
+	b₂::Float64 = b⁰*gcov[3,1] + b¹*gcov[3,2] + b²*gcov[3,3] + b³*gcov[3,4]
+	b₃::Float64 = b⁰*gcov[4,1] + b¹*gcov[4,2] + b²*gcov[4,3] + b³*gcov[4,4]
+
+	#Useful Values        
+	bsq   ::Float64 = b⁰*b₀ + b¹*b₁ + b²*b₂ + b³*b₃
+	value ::Float64 = ρ + u + (eos.gamma - 1)*u + bsq # ρ + u + p 
+	value2::Float64 = (eos.gamma - 1)*u + (1/2)*bsq   # p + (1/2)*bsq
+	sq_g  ::Float64 = sqrt_g(gcov)                    #square root of the determinant of the metric
+	
+	#Buffers
 	buffer_3::Float64 = sq_g*(b⁰*u³-b³*u⁰ + b¹*u³-b³*u¹ + b²*u³-b³*u²)
-	return buffer_1, buffer_2, buffer_3
+	return buffer_3
 end
 
 function Lorentz_factor(x::AbstractVector, gcov::Matrix{Float64}, eos::Polytrope)
@@ -307,6 +411,7 @@ function Lorentz_factor(x::AbstractVector, gcov::Matrix{Float64}, eos::Polytrope
 
 	#For C=1 lorentz factor is:
 	γ::Float64 = (-b - sqrt(b^2 - 4*a*c))/(2*a)
+
 	return γ
 end
 
@@ -528,14 +633,6 @@ function Jacobian(x::AbstractVector, buffer::AbstractVector, gcov::Matrix{Float6
 
 end
 
-function invert_matrix_lu(A::AbstractMatrix)
-    size(A, 1) == size(A, 2) || error("Macierz musi być kwadratowa!")
-    lu_fact = lu(A)
-    invA = inv(lu_fact)
-    return invA
-end
-
-
 function UtoP(U::AbstractVector, initial_guess::AbstractVector, gcov::Matrix{Float64}, eos::Polytrope)
     
     #Some values
@@ -567,8 +664,7 @@ function UtoP(U::AbstractVector, initial_guess::AbstractVector, gcov::Matrix{Flo
         end
     end
     if sqrt(buff_fun[1]^2 + buff_fun[2]^2 + buff_fun[3]^2 + buff_fun[4]^2 + buff_fun[5]^2) > 10^-8
-    	println("Nie zbiegło!!!") 
-    #	println(sqrt(buff_fun[1]^2 + buff_fun[2]^2 + buff_fun[3]^2 + buff_fun[4]^2 + buff_fun[5]^2))
+    	error("Nie zbiegło!!!")
     end
     
     return x
