@@ -49,9 +49,9 @@ tot = 0
 
 dt=0.3*dx/c
 
-T =3*dt
+T =10*dt
 println("Wykonuje przerzucenie z siatki primitive variable::",tot/T)
-@threads for i in 1:N1
+ for i in 1:N1
 	for j in 1:N2
 		  for k in 1:N3
 			buffer_P[i, j, k, :] .= grid[i, j, k, :]
@@ -62,7 +62,7 @@ end
 while tot < T
 	println("Krok:",tot/T)
 	println("Wykonuje obliczenie wartości zachowanych dla kroku:",tot/T)
-@threads	for i in 1:N1
+	for i in 1:N1
 		for j in 1:N2
 			   for k in 1:N3
 				PtoU(buffer_P[i, j, k, :],  stupid_U,  Kerr_Schild_metric_cov(N1_grid[i], N2_grid[j], N3_grid[k], a), eos)
@@ -72,7 +72,7 @@ while tot < T
 	end
 
 	println("Wykonuje obliczenie fluxów dla kroku: ",tot/T)
-@threads	for i in 3:(N1-2)
+		for i in 3:(N1-2)
 		for j in 3:(N2-2)
 		 for k in 3:(N3-2)
 		                     
@@ -137,7 +137,7 @@ while tot < T
 	    end
 
 	println("Wykonuje przeliczenie nowych wartości zachowanych dla kroku: ",tot/T)
-@threads	for i in 3:(N1-2)
+	for i in 3:(N1-2)
 		for j in 3:(N2-2)
 			 for k in 3:(N3-2)
 				#println("Przed:",buffer_U[i,j,k, 1:5])
@@ -148,7 +148,7 @@ while tot < T
 		end
 	end
 	println("Wykonuje obliczenie wartości primitive variable z wartości zachowanych: ",tot/T)
-@threads	for i in 1:N1
+	for i in 1:N1
 		for j in 1:N2
 		 for k in 1:N3
 				 buffer_P[i, j, k, :] .= UtoP(buffer_U[i,j,k,:], buffer_P[i,j,k,:],  Kerr_Schild_metric_cov(N1_grid[i], N2_grid[j], N3_grid[k], a), eos::Polytrope)

@@ -10,8 +10,8 @@ include("LU.jl")
 function PtoU(x::AbstractVector, buffer::AbstractVector, gcov::Matrix{Float64}, eos::Polytrope)
 	
 	#Parameters
-	ρ::Float64  = x[1] #Density
-	u::Float64  = x[2] #Internal Energy 
+	ρ ::Float64 = x[1] #Density
+	u ::Float64 = x[2] #Internal Energy 
 	u¹::Float64 = x[3] #Contravariant Four-velocity in 1-direction
 	u²::Float64 = x[4] #Contravariant Four-velocity in 2-direction
 	u³::Float64 = x[5] #Contravariant Four-velocity in 3-direction   
@@ -49,10 +49,10 @@ function PtoU(x::AbstractVector, buffer::AbstractVector, gcov::Matrix{Float64}, 
 	b₃::Float64 = b⁰*gcov[4,1] + b¹*gcov[4,2] + b²*gcov[4,3] + b³*gcov[4,4]
 
 	#Useful Values        
-	bsq::Float64    = b⁰*b₀ + b¹*b₁ + b²*b₂ + b³*b₃
-	value::Float64  = ρ + u + (eos.gamma - 1)*u + bsq # ρ + u + p 
+	bsq   ::Float64 = b⁰*b₀ + b¹*b₁ + b²*b₂ + b³*b₃
+	value ::Float64 = ρ + u + (eos.gamma - 1)*u + bsq # ρ + u + p 
 	value2::Float64 = (eos.gamma - 1)*u + (1/2)*bsq   # p + (1/2)*bsq
-	sq_g::Float64   = sqrt_g(gcov)                    #square root of the determinant of the metric
+	sq_g  ::Float64 = sqrt_g(gcov)                    #square root of the determinant of the metric
 
 	#Buffers
 	buffer[1] = sq_g*ρ*u⁰ 
@@ -69,8 +69,8 @@ end
 function PtoFx(x::AbstractVector, buffer::AbstractVector, gcov::Matrix{Float64}, eos::Polytrope)
 	
 	#Parameters
-	ρ::Float64  = x[1] #Density
-	u::Float64  = x[2] #Internal Energy 
+	ρ ::Float64 = x[1] #Density
+	u ::Float64 = x[2] #Internal Energy 
 	u¹::Float64 = x[3] #Contravariant Four-velocity in 1-direction
 	u²::Float64 = x[4] #Contravariant Four-velocity in 2-direction
 	u³::Float64 = x[5] #Contravariant Four-velocity in 3-direction   
@@ -108,10 +108,10 @@ function PtoFx(x::AbstractVector, buffer::AbstractVector, gcov::Matrix{Float64},
 	b₃::Float64 = b⁰*gcov[4,1] + b¹*gcov[4,2] + b²*gcov[4,3] + b³*gcov[4,4]
 
 	#Useful Values        
-	bsq::Float64 = b⁰*b₀ + b¹*b₁ + b²*b₂ + b³*b₃
-	value::Float64 = ρ + u + (eos.gamma - 1)*u + bsq # ρ + u + p 
-	value2::Float64 = (eos.gamma - 1)*u + (1/2)*bsq  # p + (1/2)*bsq
-	sq_g::Float64 = sqrt_g(gcov)                     #square root of the determinant of the metric
+	bsq   ::Float64 = b⁰*b₀ + b¹*b₁ + b²*b₂ + b³*b₃
+	value ::Float64 = ρ + u + (eos.gamma - 1)*u + bsq # ρ + u + p 
+	value2::Float64 = (eos.gamma - 1)*u + (1/2)*bsq   # p + (1/2)*bsq
+	sq_g  ::Float64 = sqrt_g(gcov)                    #square root of the determinant of the metric
 	
 	#Buffers    
 	buffer[1] = sq_g*ρ*u¹
@@ -125,8 +125,8 @@ end
 function PtoFy(x::AbstractVector, buffer::AbstractVector, gcov::Matrix{Float64}, eos::Polytrope)
 	
 	#Parameters
-	ρ::Float64  = x[1] #Density
-	u::Float64  = x[2] #Internal Energy 
+	ρ ::Float64 = x[1] #Density
+	u ::Float64 = x[2] #Internal Energy 
 	u¹::Float64 = x[3] #Contravariant Four-velocity in 1-direction
 	u²::Float64 = x[4] #Contravariant Four-velocity in 2-direction
 	u³::Float64 = x[5] #Contravariant Four-velocity in 3-direction   
@@ -164,10 +164,10 @@ function PtoFy(x::AbstractVector, buffer::AbstractVector, gcov::Matrix{Float64},
 	b₃::Float64 = b⁰*gcov[4,1] + b¹*gcov[4,2] + b²*gcov[4,3] + b³*gcov[4,4]
 
 	#Useful Values        
-	bsq::Float64 = b⁰*b₀ + b¹*b₁ + b²*b₂ + b³*b₃
-	value::Float64 = ρ + u + (eos.gamma - 1)*u + bsq # ρ + u + p 
-	value2::Float64 = (eos.gamma - 1)*u + (1/2)*bsq  # p + (1/2)*bsq
-	sq_g::Float64 = sqrt_g(gcov)                     #square root of the determinant of the metric
+	bsq   ::Float64 = b⁰*b₀ + b¹*b₁ + b²*b₂ + b³*b₃
+	value ::Float64 = ρ + u + (eos.gamma - 1)*u + bsq # ρ + u + p 
+	value2::Float64 = (eos.gamma - 1)*u + (1/2)*bsq   # p + (1/2)*bsq
+	sq_g  ::Float64 = sqrt_g(gcov)                    #square root of the determinant of the metric
 	
 	#Buffers
 	buffer[1] = sq_g*ρ*u²
@@ -181,8 +181,8 @@ end
 function PtoFz(x::AbstractVector, buffer::AbstractVector, gcov::Matrix{Float64}, eos::Polytrope)
 	
 	#Parameters
-	ρ::Float64  = x[1] #Density
-	u::Float64  = x[2] #Internal Energy 
+	ρ ::Float64 = x[1] #Density
+	u ::Float64 = x[2] #Internal Energy 
 	u¹::Float64 = x[3] #Contravariant Four-velocity in 1-direction
 	u²::Float64 = x[4] #Contravariant Four-velocity in 2-direction
 	u³::Float64 = x[5] #Contravariant Four-velocity in 3-direction   
@@ -220,10 +220,10 @@ function PtoFz(x::AbstractVector, buffer::AbstractVector, gcov::Matrix{Float64},
 	b₃::Float64 = b⁰*gcov[4,1] + b¹*gcov[4,2] + b²*gcov[4,3] + b³*gcov[4,4]
 
 	#Useful Values        
-	bsq::Float64 = b⁰*b₀ + b¹*b₁ + b²*b₂ + b³*b₃
-	value::Float64 = ρ + u + (eos.gamma - 1)*u + bsq # ρ + u + p 
-	value2::Float64 = (eos.gamma - 1)*u + (1/2)*bsq  # p + (1/2)*bsq
-	sq_g::Float64 = sqrt_g(gcov)                     #square root of the determinant of the metric
+	bsq   ::Float64 = b⁰*b₀ + b¹*b₁ + b²*b₂ + b³*b₃
+	value ::Float64 = ρ + u + (eos.gamma - 1)*u + bsq # ρ + u + p 
+	value2::Float64 = (eos.gamma - 1)*u + (1/2)*bsq   # p + (1/2)*bsq
+	sq_g  ::Float64 = sqrt_g(gcov)                    #square root of the determinant of the metric
 	
 	#Buffers
 	buffer[1] = sq_g*ρ*u³
@@ -237,8 +237,8 @@ end
 function PtoF_Bx_By_Bz(x::AbstractVector, gcov::Matrix{Float64}, eos::Polytrope)
 	
 	#Parameters
-	ρ::Float64  = x[1] #Density
-	u::Float64  = x[2] #Internal Energy 
+	ρ ::Float64 = x[1] #Density
+	u ::Float64 = x[2] #Internal Energy 
 	u¹::Float64 = x[3] #Contravariant Four-velocity in 1-direction
 	u²::Float64 = x[4] #Contravariant Four-velocity in 2-direction
 	u³::Float64 = x[5] #Contravariant Four-velocity in 3-direction   
@@ -268,9 +268,18 @@ function PtoF_Bx_By_Bz(x::AbstractVector, gcov::Matrix{Float64}, eos::Polytrope)
 	b¹::Float64 = (B¹ + b⁰*u¹)/u⁰
 	b²::Float64 = (B² + b⁰*u²)/u⁰
 	b³::Float64 = (B³ + b⁰*u³)/u⁰
-	
+
+	#Covariant Four-magnetic field    
+	b₀::Float64 = b⁰*gcov[1,1] + b¹*gcov[1,2] + b²*gcov[1,3] + b³*gcov[1,4]
+	b₁::Float64 = b⁰*gcov[2,1] + b¹*gcov[2,2] + b²*gcov[2,3] + b³*gcov[2,4]
+	b₂::Float64 = b⁰*gcov[3,1] + b¹*gcov[3,2] + b²*gcov[3,3] + b³*gcov[3,4]
+	b₃::Float64 = b⁰*gcov[4,1] + b¹*gcov[4,2] + b²*gcov[4,3] + b³*gcov[4,4]
+
 	#Useful Values        
-	sq_g::Float64 = sqrt_g(gcov) #square root of the determinant of the metric
+	bsq   ::Float64 = b⁰*b₀ + b¹*b₁ + b²*b₂ + b³*b₃
+	value ::Float64 = ρ + u + (eos.gamma - 1)*u + bsq # ρ + u + p 
+	value2::Float64 = (eos.gamma - 1)*u + (1/2)*bsq   # p + (1/2)*bsq
+	sq_g  ::Float64 = sqrt_g(gcov)                    #square root of the determinant of the metric
 	
 	#Buffers
 	buffer_1::Float64 = sq_g*(b⁰*u¹-b¹*u⁰ + b²*u¹-b¹*u² + b³*u¹-b¹*u³)
@@ -306,8 +315,8 @@ function Jacobian(x::AbstractVector, buffer::AbstractVector, gcov::Matrix{Float6
 	
 	
 	#Parameters
-	ρ::Float64  = x[1] #Density
-	u::Float64  = x[2] #Internal Energy 
+	ρ ::Float64 = x[1] #Density
+	u ::Float64 = x[2] #Internal Energy 
 	u¹::Float64 = x[3] #Contravariant Four-velocity in 1-direction
 	u²::Float64 = x[4] #Contravariant Four-velocity in 2-direction
 	u³::Float64 = x[5] #Contravariant Four-velocity in 3-direction   
@@ -345,10 +354,10 @@ function Jacobian(x::AbstractVector, buffer::AbstractVector, gcov::Matrix{Float6
 	b₃::Float64 = b⁰*gcov[4,1] + b¹*gcov[4,2] + b²*gcov[4,3] + b³*gcov[4,4]
 
 	#Useful Values        
-	bsq::Float64 = b⁰*b₀ + b¹*b₁ + b²*b₂ + b³*b₃
-	value::Float64 = ρ + u + (eos.gamma - 1)*u + bsq # ρ + u + p 
-	value2::Float64 = (eos.gamma - 1)*u + (1/2)*bsq  # p + (1/2)*bsq
-	sq_g::Float64 = sqrt_g(gcov)                     #square root of the determinant of the metric
+	bsq   ::Float64 = b⁰*b₀ + b¹*b₁ + b²*b₂ + b³*b₃
+	value ::Float64 = ρ + u + (eos.gamma - 1)*u + bsq # ρ + u + p 
+	value2::Float64 = (eos.gamma - 1)*u + (1/2)*bsq   # p + (1/2)*bsq
+	sq_g  ::Float64 = sqrt_g(gcov)                    #square root of the determinant of the metric
 	
 	#For u⁰
 	value_sqrt::Float64 = sqrt(b^2 - 4*a*c)
