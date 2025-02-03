@@ -6,7 +6,6 @@ using LinearAlgebra
 include("Matrix_operations.jl")
 include("Christoffel_Symbols.jl")
 include("structs.jl")
-include("Initial_Conditions.jl")
 include("fluxlimiter.jl")
 include("eos.jl")
 

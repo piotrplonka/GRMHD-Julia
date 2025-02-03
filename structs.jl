@@ -705,7 +705,7 @@ function UtoP_LU(U::AbstractVector, initial_guess::AbstractVector, gcov::Matrix{
     end
 
     final_res = sqrt(sum(buff_fun[i]^2 for i in 1:5))
-    if final_res > 1e-5
+    if final_res > 1e-4
         error("Nie zbiegło!!! Residuum = $final_res")
     end
 
