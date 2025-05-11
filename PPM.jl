@@ -12,7 +12,7 @@ include("eos.jl")
 
 function PPM(q_im2::T, q_im1::T, q_i::T, q_ip1::T, q_ip2::T) where T
     C2 = T(1.25)
-    
+    C3 = T(6.124324)
     # Step 1: Compute differences and interface averages
     qa = q_i - q_im1
     qb = q_ip1 - q_i
